@@ -26,12 +26,12 @@ if [ -n "${BASH_SOURCE:-}" ] && [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 fi
 
 L() {
-  local tmp out status
+  local tmp out rc
   tmp="$(mktemp)" || return 1
   "$@" 2>&1 | tee "$tmp"
-  status=${PIPESTATUS[0]}
+  rc=${PIPESTATUS[0]:-${pipestatus[1]}}
   out="$(tr '\n' ' ' < "$tmp" | sed -e 's/  */ /g' -e 's/^ //' -e 's/ $//')"
   rm -f "$tmp"
   [ -n "$out" ] && export L="${out:0:220}"
-  return "$status"
+  return "$rc"
 }
