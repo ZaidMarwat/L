@@ -19,7 +19,8 @@ my IP is 203.0.113.42
 Bash. Add it to your `.bashrc` (or `.zshrc`):
 
 ```bash
-git clone https://github.com/ZaidMarwat/L && echo 'source '"$PWD"'/L/L' >> ~/.bashrc
+git clone https://github.com/ZaidMarwat/L
+echo "source $PWD/L/L" >> ~/.bashrc
 ```
 
 ## Use
