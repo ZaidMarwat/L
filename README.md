@@ -31,6 +31,9 @@ ordinary shell variable — reference it in any command and your shell expands i
 no special handling needed.
 
 - Output is never altered or annotated — what you see is exactly what the command printed.
+- Your own aliases work through `L` (`L ll`, `L gs`, ...) the same way they do through
+  `sudo` or `time` — it's a real alias under the hood, not a function, specifically so this
+  composes instead of shadowing your setup.
 - Empty output never overwrites `$L` — the last real value sticks around.
 - `$L` is capped at 220 characters, matching the very first version of this trick.
 - Exit status passes through untouched, so `L some-check && echo ok` works as expected.
