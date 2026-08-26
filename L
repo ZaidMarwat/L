@@ -10,8 +10,10 @@
 # Add this to your .bashrc (or .zshrc):
 #   source /path/to/L
 #
-# Then just prefix anything you want to remember:
+# Then just prefix anything you want to remember -- your own aliases work
+# too, the same way they do through sudo or time:
 #   L curl -s ifconfig.me
+#   L ll
 #   echo my IP is $L
 #
 # Output prints normally and in real time, exactly as if you had run the
@@ -25,7 +27,9 @@ if [ -n "${BASH_SOURCE:-}" ] && [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   exit 1
 fi
 
-L() {
+[ -n "${BASH_VERSION:-}" ] && shopt -s expand_aliases 2>/dev/null
+
+_L_run() {
   local tmp out rc
   tmp="$(mktemp)" || return 1
   "$@" 2>&1 | tee "$tmp"
@@ -35,3 +39,8 @@ L() {
   [ -n "$out" ] && export L="${out:0:220}"
   return "$rc"
 }
+
+# The trailing space is load-bearing: it tells bash/zsh to also check the
+# next word for alias expansion, so L composes with your own aliases
+# instead of shadowing them.
+alias L='_L_run '
