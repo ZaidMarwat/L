@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+#
+# L — a tiny REPL built around one variable.
+#
+# The first program I ever wrote saved whatever the last command printed
+# into a variable called $L, so I could hand it straight to the next
+# command instead of retyping it. This is that idea, rebuilt properly.
+#
+# Usage:
+#   ./L
+#
+# Type any shell command. Its output prints normally and gets captured
+# into $L. Reference $L in your next command and it's substituted in
+# before the line runs.
+#
+#   L> echo hello world
+#   hello world
+#   L> echo $L, again
+#   $L -> echo hello world, again
+#   hello world, again
+#
+# Empty output never overwrites $L. Stored output is capped at 220
+# characters, matching the very first version of this trick.
+
+set -u
+
+L=""
+MAX_LEN=220
+
+has_L() {
+  [[ "$1" =~ \$L([^A-Za-z0-9_]|$) ]]
+}
+
+expand_L() {
+  L_VALUE="$L" perl -pe 's/\$L\b/$ENV{L_VALUE}/g' <<< "$1"
+}
+
+echo 'L -- type a command. $L holds whatever the last one printed.'
+echo 'exit or Ctrl-D to leave.'
+echo
+
+while true; do
+  printf 'L> '
+  IFS= read -r line || { echo; break; }
+
+  [[ -z "${line//[[:space:]]/}" ]] && continue
+  [[ "$line" == "exit" || "$line" == "quit" ]] && break
+
+  if has_L "$line"; then
+    if [[ -z "$L" ]]; then
+      echo '$L is empty. Run something first, then try again.'
+      continue
+    fi
+    line="$(expand_L "$line")"
+    echo "\$L -> $line"
+  fi
+
+  output="$(eval "$line" 2>&1)"
+  status=$?
+
+  if [[ -n "$output" ]]; then
+    printf '%s\n' "$output"
+    joined="$(printf '%s' "$output" | tr '\n' ' ' | sed -e 's/  */ /g' -e 's/^ //' -e 's/ $//')"
+    L="${joined:0:$MAX_LEN}"
+  fi
+
+  [[ $status -ne 0 ]] && echo "[exit $status]" >&2
+done
