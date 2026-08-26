@@ -3,40 +3,36 @@
 The first program I wrote. Rebuilt properly.
 
 It saved whatever the last command printed into a variable called `$L`, so I could hand
-it straight to the next command instead of retyping it. This is that same idea as a
-small, real REPL.
+it straight to the next command instead of retyping it. This is that same idea as a real
+variable in your real shell — not a separate program you have to enter and exit.
 
 ```
-$ ./L
-L -- type a command. $L holds whatever the last one printed.
-exit or Ctrl-D to leave.
-
-L> curl -s ifconfig.me
+$ source L
+$ L curl -s ifconfig.me
 203.0.113.42
-L> echo my IP is $L
-$L -> echo my IP is 203.0.113.42
+$ echo my IP is $L
 my IP is 203.0.113.42
 ```
 
 ## Install
 
-Bash and Perl. Both ship on macOS and virtually every Linux box.
+Bash. Add it to your `.bashrc` (or `.zshrc`):
 
 ```bash
-git clone https://github.com/ZaidMarwat/L && cd L
-./L
+git clone https://github.com/ZaidMarwat/L && echo 'source '"$PWD"'/L/L' >> ~/.bashrc
 ```
 
 ## Use
 
-Type any real shell command. It runs for real, its output prints normally, and gets
-captured into `$L`. Reference `$L` in your next line and it's substituted in before
-that line runs.
+Prefix anything you want to remember with `L`. It runs for real, its output prints
+normally and in real time, and gets captured into `$L`. From then on, `$L` is just an
+ordinary shell variable — reference it in any command and your shell expands it natively,
+no special handling needed.
 
+- Output is never altered or annotated — what you see is exactly what the command printed.
 - Empty output never overwrites `$L` — the last real value sticks around.
 - `$L` is capped at 220 characters, matching the very first version of this trick.
-- `$L` only expands as a whole word, so `$Lorem` is left alone.
-- `exit` or Ctrl-D leaves.
+- Exit status passes through untouched, so `L some-check && echo ok` works as expected.
 
 ## Why
 
