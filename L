@@ -16,10 +16,17 @@
 #   L ll
 #   echo my IP is $L
 #
+# $L is a real array, one element per line of output, so a multi-line
+# result works as a list of arguments to your next command:
+#   L ls
+#   touch $L               # zsh: splices every item as its own word
+#   touch "${L[@]}"        # bash: same thing, spelled the bash way --
+#                           #   bare $L in bash only gives the first item
+#
 # Output prints normally and in real time, exactly as if you had run the
 # command yourself — nothing extra gets printed. $L is left untouched when
-# a command produces no output, and capped at 220 characters, matching the
-# very first version of this trick.
+# a command produces no output. No length cap: a line is a line, however
+# long it is.
 
 if [ -n "${BASH_SOURCE:-}" ] && [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   echo "L defines a shell function, so it needs to be sourced, not run:" >&2
@@ -30,13 +37,17 @@ fi
 [ -n "${BASH_VERSION:-}" ] && shopt -s expand_aliases 2>/dev/null
 
 _L_run() {
-  local tmp out rc
+  local tmp rc line
   tmp="$(mktemp)" || return 1
   "$@" 2>&1 | tee "$tmp"
   rc=${PIPESTATUS[0]:-${pipestatus[1]}}
-  out="$(tr '\n' ' ' < "$tmp" | sed -e 's/  */ /g' -e 's/^ //' -e 's/ $//')"
+  if [ -s "$tmp" ]; then
+    L=()
+    while IFS= read -r line || [ -n "$line" ]; do
+      L+=("$line")
+    done < "$tmp"
+  fi
   rm -f "$tmp"
-  [ -n "$out" ] && export L="${out:0:220}"
   return "$rc"
 }
 
